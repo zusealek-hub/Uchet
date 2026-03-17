@@ -1,15 +1,16 @@
 'use strict';
 
 const CACHE_NAME = 'uchet-cache-v6';
+const withScope = (path) => new URL(path, self.registration.scope).pathname;
 
 const APP_SHELL = [
-  '/',
-  '/index.html',
-  '/style.css',
-  '/app.js',
-  '/manifest.json',
-  '/icons/icon-192.svg',
-  '/icons/icon-512.svg'
+  withScope('./'),
+  withScope('./index.html'),
+  withScope('./style.css'),
+  withScope('./app.js'),
+  withScope('./manifest.json'),
+  withScope('./icons/icon-192.svg'),
+  withScope('./icons/icon-512.svg')
 ];
 
 self.addEventListener('install', (event) => {
@@ -53,10 +54,10 @@ self.addEventListener('fetch', (event) => {
         try {
           const fresh = await fetch(req);
           const cache = await caches.open(CACHE_NAME);
-          cache.put('/index.html', fresh.clone());
+          cache.put(withScope('./index.html'), fresh.clone());
           return fresh;
         } catch {
-          const cached = await caches.match('/index.html');
+          const cached = await caches.match(withScope('./index.html'));
           if (cached) return cached;
           return new Response('Offline', {
             status: 503,

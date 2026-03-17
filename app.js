@@ -2,6 +2,10 @@
   'use strict';
 
   const STORAGE_KEY = 'uchet.data.v1';
+  const APP_BASE_PATH = (() => {
+    const path = window.location.pathname || '/';
+    return path.endsWith('/') ? path : path.slice(0, path.lastIndexOf('/') + 1);
+  })();
 
   const DEBUG = false;
   const dbg = (...args) => {
@@ -587,8 +591,8 @@
 
     window.addEventListener('load', async () => {
       try {
-        const reg = await navigator.serviceWorker.register('/service-worker.js', {
-          scope: '/',
+        const reg = await navigator.serviceWorker.register(`${APP_BASE_PATH}service-worker.js`, {
+          scope: APP_BASE_PATH,
           updateViaCache: 'none'
         });
         console.log('service worker registered', reg.scope);
