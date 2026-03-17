@@ -1,0 +1,175 @@
+<!doctype html>
+<html lang="ru">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="theme-color" content="#0f172a" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="default" />
+  <meta name="apple-mobile-web-app-title" content="Учеты" />
+
+  <link rel="manifest" href="/manifest.json" />
+  <link rel="icon" href="/icons/icon-192.svg" type="image/svg+xml" />
+  <link rel="apple-touch-icon" href="/icons/icon-192.svg" />
+
+  <link rel="stylesheet" href="/style.css" />
+  <title>Учеты</title>
+</head>
+<body>
+  <header class="topbar">
+    <div class="topbar__inner">
+      <div class="brand" id="brand">Учеты</div>
+      <div class="topbar__actions">
+        <button class="btn btn--ghost" id="btnExport" type="button" title="Экспорт">Экспорт</button>
+        <label class="btn btn--ghost" for="importFile" title="Импорт">
+          Импорт
+        </label>
+        <input id="importFile" class="sr-only" type="file" accept="application/json" />
+      </div>
+    </div>
+  </header>
+
+  <main class="container">
+    <section id="viewHome" class="view" aria-label="Список учетов">
+      <div class="card">
+        <div class="row row--gap">
+          <input id="searchInput" class="input" type="search" placeholder="Поиск по названию учета" autocomplete="off" />
+          <button id="btnCreateLedger" class="btn" type="button">Создать учет</button>
+        </div>
+      </div>
+
+      <div id="ledgersList" class="list"></div>
+
+      <div id="emptyState" class="empty" hidden>
+        <div class="empty__title">Пока нет учетов</div>
+        <div class="empty__hint">Создайте первый учет, чтобы начать</div>
+      </div>
+    </section>
+
+    <section id="viewLedger" class="view" aria-label="Экран учета" hidden>
+      <div class="card">
+        <div class="ledgerHead">
+          <button id="btnBack" class="btn btn--ghost" type="button">Назад</button>
+          <div class="ledgerHead__titleWrap">
+            <div class="ledgerHead__title" id="ledgerTitle">—</div>
+            <button id="btnRenameLedger" class="btn btn--ghost btn--sm" type="button">Переименовать</button>
+          </div>
+          <button id="btnDeleteLedger" class="btn btn--danger" type="button">Удалить</button>
+        </div>
+
+        <div class="balance">
+          <div class="balance__label">Текущий баланс</div>
+          <div class="balance__value" id="ledgerBalance">0</div>
+        </div>
+
+        <div class="row row--gap">
+          <button id="btnAddOp" class="btn" type="button">Добавить операцию</button>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="stats">
+          <div class="stat">
+            <div class="stat__label">Всего пополнений</div>
+            <div class="stat__value" id="statIncome">0</div>
+          </div>
+          <div class="stat">
+            <div class="stat__label">Всего списаний</div>
+            <div class="stat__value" id="statExpense">0</div>
+          </div>
+          <div class="stat">
+            <div class="stat__label">Итоговый баланс</div>
+            <div class="stat__value" id="statBalance">0</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card__title">Операции</div>
+        <div id="opsList" class="ops"></div>
+        <div id="opsEmpty" class="empty" hidden>
+          <div class="empty__title">Нет операций</div>
+          <div class="empty__hint">Нажмите “Добавить операцию”</div>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <dialog id="dlgLedger" class="dlg">
+    <form id="formLedger" method="dialog" class="dlg__form">
+      <div class="dlg__title" id="dlgLedgerTitle">Создать учет</div>
+      <div class="dlg__body">
+        <label class="label">
+          <div class="label__name">Название</div>
+          <input id="ledgerName" class="input" type="text" required maxlength="60" placeholder="Например: Бабуля долг" />
+        </label>
+      </div>
+      <div class="dlg__actions">
+        <button class="btn btn--ghost" value="cancel" type="button" data-close>Отмена</button>
+        <button class="btn" value="ok" type="submit">Сохранить</button>
+      </div>
+    </form>
+  </dialog>
+
+  <dialog id="dlgOp" class="dlg">
+    <form id="formOp" method="dialog" class="dlg__form">
+      <div class="dlg__title">Добавить операцию</div>
+      <div class="dlg__body">
+        <div class="stack gap-12">
+          <div class="label" style="width:100%;">
+            <div class="label__name">Тип</div>
+            <div class="type-toggle" id="opTypeToggle" role="tablist" aria-label="Тип операции">
+              <button
+                id="opTypeIncome"
+                class="type-toggle__btn is-active"
+                type="button"
+                data-type="income"
+                aria-pressed="true"
+              >
+                Пополнение
+              </button>
+              <button
+                id="opTypeExpense"
+                class="type-toggle__btn"
+                type="button"
+                data-type="expense"
+                aria-pressed="false"
+              >
+                Списание
+              </button>
+            </div>
+            <input id="opType" type="hidden" value="income" />
+          </div>
+
+          <label class="label" style="width:100%;">
+            <div class="label__name">Сумма</div>
+            <input
+              id="opAmount"
+              class="input"
+              type="number"
+              inputmode="decimal"
+              min="0"
+              step="0.01"
+              placeholder="0"
+              required
+            />
+          </label>
+        </div>
+        <label class="label">
+          <div class="label__name">Название операции</div>
+          <input id="opTitle" class="input" type="text" required maxlength="80" placeholder="Например: Вернул часть" />
+        </label>
+      </div>
+      <div class="dlg__actions">
+        <button class="btn btn--ghost" value="cancel" type="button" data-close>Отмена</button>
+        <button class="btn" value="ok" type="submit">Добавить</button>
+      </div>
+    </form>
+  </dialog>
+
+  <div id="toast" class="toast" role="status" aria-live="polite" hidden></div>
+
+  <script src="/app.js"></script>
+</body>
+</html>
